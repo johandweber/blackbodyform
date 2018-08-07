@@ -1,0 +1,259 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+<title>Estimator for black-body stars</title>
+
+<script type="text/javascript">
+
+function lumergf()
+{
+  var r=window.document.inputparameters.radius.value;
+  var t=window.document.inputparameters.temperature.value;
+  var stefanboltzmann=5.670400E-5 // (erg cm^-2 s^-1 K^-4);
+  var sunr=6.955E+10
+  return 4.0*Math.PI*r*r*sunr*sunr*stefanboltzmann*t*t*t*t;
+}
+
+function planckenergy(lambda)
+{
+  var hpla=6.62606876E-27        //Planck's Konstant
+  var clight=2.99792458E+10      // speed of light
+  var kbol=1.3806503E-16
+  var t=window.document.inputparameters.temperature.value;
+  var return_value= 2*Math.PI*hpla*clight*clight/(lambda*lambda*lambda*lambda*lambda)/
+  (Math.exp((hpla*clight)/(kbol*lambda*t))-1);
+  return return_value;
+}
+
+function planckphotons(lambda)
+{
+  var hpla=6.62606876E-27;        //Planck's Konstant
+  var clight=2.99792458E+10;      // speed of light
+  var kbol=1.3806503E-16;
+  var t=window.document.inputparameters.temperature.value;
+  var return_value= 2*Math.PI*clight/(lambda*lambda*lambda*lambda)/
+  (Math.exp((hpla*clight)/(kbol*lambda*t))-1);
+  return return_value;
+}
+
+
+function energyint(start, stop)
+{
+  var lstart=start/1E+8;                     // Anstroem --> cm
+  var lstop =stop /1E+8;
+  var no_of_intervals=10000;
+  var sunr=6.955E+10;
+  var r = window.document.inputparameters.radius.value;
+  var weight=(lstop-lstart)/no_of_intervals;
+  var integral=0;
+  var i=0;
+  //alert(lstart+" "+" "+lstop+" "+no_of_intervals+" "+weight);
+  max_planck_energy=0;  
+  for (i=0; i<=no_of_intervals; i++)
+  {
+    integral+=0.5*planckenergy(lstart+i*weight)*weight;
+  } 
+  return 8*Math.PI*r*r*sunr*sunr*integral;
+}
+
+function photonsint(start, stop)
+{
+  var lstart=start/1E+8;                     // Anstroem --> cm
+  var lstop =stop /1E+8;
+  var no_of_intervals=10000;
+  var sunr=6.955E+10;
+  var r = window.document.inputparameters.radius.value;
+  var weight=(lstop-lstart)/no_of_intervals;
+  var integral=0;
+  var i=0;
+  max_planck_energy=0;  
+  for (i=0; i<=no_of_intervals; i++)
+  {
+    integral+=0.5*planckphotons(lstart+i*weight)*weight;
+  } 
+//  alert(8*Math.PI*r*r*sunr*sunr*integral);
+  return 8*Math.PI*r*r*sunr*sunr*integral;
+}
+
+
+function write_lumerg()
+{
+  var lsun=3.846E+33;
+  window.document.outputvalues.lumerg.value=lumergf().toExponential();
+  window.document.outputvalues.lumsun.value=(lumergf()/lsun).toExponential();
+  window.document.outputvalues.loglumsun.value=Math.log(lumergf()/lsun)/Math.log(10.0);
+}
+
+function write_emmax()
+{
+  var wien=2.897756E+7;
+  window.document.outputvalues.emmax.value=
+  (wien/document.inputparameters.temperature.value).toExponential(); 
+}
+
+function write_energyint()
+{
+  window.document.outputvalues.energyinterval.value=
+  (energyint(window.document.inputparameters.lowerwave.value,
+            window.document.inputparameters.upperwave.value)).toExponential();
+}
+
+function write_photonsint()
+{
+  window.document.outputvalues.photonsinterval.value=
+  (photonsint(window.document.inputparameters.lowerwave.value,
+              window.document.inputparameters.upperwave.value)).toExponential();
+}
+
+function write_Hint()
+{
+  window.document.outputvalues.hionizing.value=
+  (photonsint(1.0,911.75344)).toExponential();
+  window.document.outputvalues.loghionizing.value=
+  Math.log(photonsint(1.0,911.75344))/Math.log(10.0);
+}
+
+function write_HeIint()
+{
+//  alert("Blabla");
+  window.document.outputvalues.heiionizing.value=
+  (photonsint(1.0,504.25907)).toExponential();
+  window.document.outputvalues.logheiionizing.value=
+  Math.log(photonsint(1.0,504.25907))/Math.log(10.0);
+}
+
+function write_HeIIint()
+{
+  window.document.outputvalues.heiiionizing.value=
+  (photonsint(1.0,227.83775)).toExponential();
+  window.document.outputvalues.logheiiionizing.value=
+  Math.log(photonsint(1.0,227.83775))/Math.log(10.0);
+
+}
+
+function test_planck()
+{
+// alert("Hallo")
+   var wavelength=window.document.inputparameters.lowerwave.value;
+   window.document.outputvalues.energyinterval.value=planckenergy(wavelength/1E+8);
+}
+
+function write_Stroemgren()
+{
+  var parsec=3.085678e+18;
+  var ldensity=window.document.inputparameters.density.value;
+  var lrecombination=window.document.inputparameters.recombination.value*1E-13;
+  var radius=Math.pow(
+  (3*photonsint(1.0,911.75344))/(4*Math.PI*ldensity*ldensity*lrecombination)
+  ,(1.0/3.0))/parsec;
+  window.document.outputvalues.stroemgren.value=radius;
+}
+
+function eingabe()
+{
+  write_lumerg();
+  write_emmax();
+//  test_planck();
+  write_energyint();
+  write_photonsint();
+  write_Hint();
+  write_HeIint();
+  write_HeIIint();
+  write_Stroemgren();
+}
+
+</script>
+
+</head>
+
+
+<body bgcolor="#FFFFCC">
+<h2>Estimator for black-body stars</h2>
+<form name="inputparameters">
+<table>
+<tr>
+	<td>Stellar radius in solar radii :</td>
+	<td><input type="text" name="radius" value="9"></td>
+</tr>
+<tr>
+	<td>Temperature in K :</td>
+	<td><input type="text" name="temperature" value="40000"></td>
+</tr>
+<tr>
+	<td>Lower Wavenlenghth of Interval in Angstr&ouml;hm :</td>
+	<td><input type="text" name="lowerwave" value="4000"></td>
+</tr>
+<tr>
+	<td>Upper Wavelength of interval in Angstr&ouml;hm :</td>
+	<td><input type="text" name="upperwave" value="10000"></td>
+</tr>
+<tr>
+	<td>Gas density in hydrogen atoms per cubic centimeter :</td>
+	<td><input type="text" name="density" value="10"></td>
+</tr>
+<tr>
+	<td>Recombinatiation Coefficient in in 10<sup>-13</sup> cm<sup>3</sup>s<sup>-1</sup></td>
+	<td><input type="text" name="recombination" value="3.0"></td>
+</tr>
+</table>
+<a href="javascript:eingabe()">Calculate !</a>
+</form>
+<br><br>
+<form name="outputvalues">
+<table>
+<tr>
+   <td>Stellar Luminosity in erg s<sup>-1</sup> :</td>
+   <td><input type="text" name="lumerg" size="30" readonly></td>
+</tr>
+<tr>
+   <td>Stellar Luminosity in solar luminosities :</td>
+   <td><input type="text" name="lumsun" size="30" readonly></td>
+</tr>
+<tr>
+   <td>log L/L<sub>sun</sub>:</td>
+   <td><input type="text" name="loglumsun" size=30 readonly></td>
+</tr>
+<tr>
+   <td>Emission maximum in Angstroem:</td>
+   <td><input type="text" name="emmax"  size="30" readonly></td>
+</tr>
+<tr>
+   <td>Emitted Energy in erg s<sup>-1</sup>inside interval :</td>
+   <td><input type="text" name="energyinterval" size="30" readonly></td>
+</tr>
+<tr>
+   <td>Emitted photons inside interval :</td>
+   <td><input type="text" name="photonsinterval" size="30" readonly></td>
+</tr>
+<tr>
+   <td>Emitted H. ioniziong photons per s:</td>
+   <td><input type="text" name="hionizing" size="30" readonly></td>
+</tr>
+<tr>
+   <td> log Q<sub>HI</sub> :</td>
+   <td><input type="text" name="loghionizing" size="30" readonly></td>
+</tr>
+<tr>
+   <td>Emitted He I ioniziong photons per s:</td>
+   <td><input type="text" name="heiionizing" size="30" readonly></td>
+</tr>
+<tr>
+   <td> log Q<sub>He I</sub></td>
+   <td><input type="text" name="logheiionizing" size="30" readonly></td>
+</tr>
+<tr>
+   <td>Emitted He II ioniziong photons per s:</td>
+   <td><input type="text" name="heiiionizing" size="30" readonly></td>
+</tr>
+<tr>
+   <td>log Q<sub>He II</sub></td>
+   <td><input type="text" name="logheiiionizing" size="30" readonly></td>
+<tr>
+   <td>Radius of hydrogen Str&ouml;mgrensphrere in pc :</td>
+   <td><input type="text" name="stroemgren" size="30" readonly></td>
+</tr>
+</table>
+</form>
+</body>
+</html>
